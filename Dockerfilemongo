@@ -1,0 +1,7 @@
+FROM amd64/mongo:5.0.5-focal as Db
+RUN apk add curl net-tools
+WORKDIR /app
+COPY ["yarn.lock", "package.json", "package-lock.json", "."]
+RUN yarn
+COPY . .
+CMD ["yarn", "start"]
