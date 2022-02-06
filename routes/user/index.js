@@ -10,7 +10,6 @@ router.get('/', async (req, res) => {
         const checkUser = await db.collection('userData').findOne(ObjectId(uid))
         if (checkUser === null) return res.status(401).json({ error: "Kayıtlı kullanıcı bulunamadı." });
         const responseUser = await db.collection('user').findOne(ObjectId(uid))
-        console.log(checkUser)
         res.json(responseUser)
     } catch (error) {
         res.status(401).json({ error: error.message });
