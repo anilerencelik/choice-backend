@@ -16,7 +16,6 @@ router.get('/', async (req, res) => {
         }).toArray()
         const temp = await db.collection('message').findOne({ ownerID: ObjectId(uid) })
 
-        console.log(temp)
         res.json(getMessages)
     } catch (error) {
         res.status(401).json({ error: error.message });

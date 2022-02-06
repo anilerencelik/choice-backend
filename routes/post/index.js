@@ -2,10 +2,14 @@ import express from 'express';
 import multer, { diskStorage } from 'multer';
 import { ObjectId } from "mongodb";
 
-const BASE_URL = 'http://localhost:5000/uploads/'
+const BASE_URL = '/uploads/'
 const BASE_ADDER = (str) => {
     return BASE_URL + str.filename
 }
+const ENDPOINT_ADDER = (arr) => {
+    return arr.map(medias => process.env.ENDPOINT_URL + medias)
+}
+
 
 const storage = diskStorage({
     destination: function (req, file, cb) {
@@ -38,10 +42,11 @@ router.get('/', async (req, res) => {
         let searchParams = {}
         if (uid) searchParams["userID"] = ObjectId(uid)
         if (mediacount) searchParams['mediaCount'] = Number(mediacount)
-        console.log(searchParams)
         const db = req.app.locals.db
         const response = await db.collection('post').find(searchParams).limit(10).toArray()
-        res.json(response)
+        const newArray = response.map((e, i) => ({ ...e, medias: ENDPOINT_ADDER(e.medias) }));
+
+        res.json(newArray)
     } catch (error) {
         res.status(401).json({ error: error.message });
     }
