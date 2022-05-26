@@ -6,33 +6,45 @@ import jwtTokens from '../../utils/jwt-helpers';
 const router = express.Router();
 
 router.post('/login', async (req, res) => {
+    // try {
+    //     const { email, password } = req.body;
+    //     // email 
+    //     const db = req.app.locals.db
+    //     const checkUser = await db.collection('userData').findOne({ "email": email })
+    //     if (checkUser === null) return res.status(401).json({ error: "Kayıtlı kullanıcı bulunamadı." });
+    //     //PASSWORD CHECK
+    //     const validPassword = await bcrypt.compare(password, checkUser.password);
+    //     if (!validPassword) return res.status(401).json({ error: "Incorrect password" });
+    //     //JWT
+    //     let tokens = jwtTokens(checkUser);
+    //     res.json(tokens);
+    // } catch (error) {
+    //     res.status(401).json({ error: error.message });
+    // }
     try {
         const { email, password } = req.body;
         // email 
+        const db = req.app.locals.db
         const checkUser = await db.collection('userData').findOne({ "email": email })
         if (checkUser === null) return res.status(401).json({ error: "Kayıtlı kullanıcı bulunamadı." });
         //PASSWORD CHECK
         const validPassword = await bcrypt.compare(password, checkUser.password);
         if (!validPassword) return res.status(401).json({ error: "Incorrect password" });
         //JWT
-        let tokens = jwtTokens(checkUser);
-        res.json(tokens);
+        res.json({ userID: checkUser._id });
     } catch (error) {
         res.status(401).json({ error: error.message });
     }
-
 });
 
 router.post('/sign-up', async (req, res) => {
     try {
-        const { email, password, phone, username } = req.body;
+        const { email, password, username } = req.body;
         const db = req.app.locals.db
-        // email, phone, username
+        // email, username
         const checkUser = await db.collection('userData').findOne({
             "$or": [{
                 "username": username
-            }, {
-                "phone": phone
             }, {
                 "email": email
             }]
@@ -46,7 +58,6 @@ router.post('/sign-up', async (req, res) => {
         const hashedPass = await bcrypt.hash(password, 12)
         const response = await db.collection('userData').insertOne({
             password: hashedPass,
-            phone,
             username,
             email,
             createdAt: Date(),
@@ -95,7 +106,7 @@ router.delete('/refresh_token', (req, res) => {
     }
 });
 
-router.get('/selamsenabebek', (req, res) => {
+router.get('/selambebek', (req, res) => {
     try {
         res.send("aleykümselam")
     } catch (error) {
