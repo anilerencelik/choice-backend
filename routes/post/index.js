@@ -43,8 +43,19 @@ router.get('/', async (req, res) => {
         if (uid) searchParams["userID"] = ObjectId(uid)
         if (mediacount) searchParams['mediaCount'] = Number(mediacount)
         const db = req.app.locals.db
-        const response = await db.collection('post').find(searchParams).limit(limit ? parseInt(limit, 10) : 99999).toArray()
-        const newArray = response.map((e, i) => ({ ...e, medias: ENDPOINT_ADDER(e.medias) }));
+        const response = await db.collection('post').aggregate([
+            {
+                $lookup:
+                {
+                    from: 'userData',
+                    localField: 'userID',
+                    foreignField: '_id',
+                    as: 'userdetails'
+                }
+            }
+        ]).limit(limit ? parseInt(limit, 10) : 99999).toArray()
+        const tempArray = response.map((e, i) => ({ ...e, medias: ENDPOINT_ADDER(e.medias) }));
+        const newArray = tempArray.map((e, i) => ({ ...e, userPicture: ENDPOINT_ADDER([e.userdetails[0].picture]) }));
         res.json(newArray)
     } catch (error) {
         res.status(401).json({ error: error.message });
