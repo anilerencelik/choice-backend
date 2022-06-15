@@ -93,7 +93,6 @@ router.post('/profile-picture', upload.any('post'), async (req, res) => {
         console.log(5, uid)
         let medias = req.files.map(BASE_ADDER)
         const db = req.app.locals.db
-        console.log(medias[0])
         await db.collection('userData').updateOne({ '_id': ObjectId(uid) },
             { '$set': { 'picture': medias[0] } })
         res.json('OK')

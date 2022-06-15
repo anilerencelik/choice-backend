@@ -70,6 +70,11 @@ router.post('/', upload.any('post'), async (req, res) => {
         const { uid, description } = req.body
         let medias = req.files.map(BASE_ADDER)
         const db = req.app.locals.db
+        let votes = {}
+        for (let i = 0; i < mediaType; i++) {
+            votes[i] = 0
+        }
+        console.log(votes)
         const response = await db.collection('post').insertOne({
             createdAt: Date(),
             updatedAt: Date(),
@@ -77,8 +82,8 @@ router.post('/', upload.any('post'), async (req, res) => {
             mediaCount: mediaType,
             medias: medias,
             userID: ObjectId(uid),
-            votedUsers: {},
-            votes: {},
+            votedUsers: [],
+            votes,
             description
         })
         res.json(response)
@@ -86,5 +91,51 @@ router.post('/', upload.any('post'), async (req, res) => {
         res.status(401).json({ error: error.message });
     }
 })
+
+router.post('/vote', async (req, res) => {
+    try {
+        const { uid, postIndex, postId } = req.body
+        const db = req.app.locals.db
+        // ILGILI POST ÇEKILDI
+        const y = await db.collection('post').findOne(
+            { '_id': ObjectId(postId) }
+        )
+
+        // OY VERDIYSE HANGI POSTA VERMEDIYSE -1 
+        let fIndex = -1
+        for (let key in y.votedUsers) {
+            let a = y.votedUsers[parseInt(key)].find(element => element.toString() == ObjectId(uid).toString())
+            if (a != undefined) {
+                fIndex = parseInt(key)
+            }
+        }
+        if (fIndex == -1) {
+            // VOTED USER EKLEME 
+            y.votedUsers[parseInt(postIndex)].push(ObjectId(uid))
+            // OY ARTIRMA
+            y.votes[parseInt(postIndex)] += 1
+        } else {
+            console.log("else", fIndex)
+            // AYNI YERE MI VERDI
+            if (fIndex != parseInt(postIndex)) {
+                // VOTED USER KALDIRMA
+                y.votedUsers[(parseInt(fIndex))] = y.votedUsers[(parseInt(fIndex))].filter(element => element.toString() != ObjectId(uid).toString())
+                // OY AZALTMA
+                y.votes[parseInt(fIndex)] -= 1
+                // VOTED USER EKLEME
+                y.votedUsers[parseInt(postIndex)].push(ObjectId(uid))
+                // OY ARTIRMA
+                y.votes[parseInt(postIndex)] += 1
+            }
+        }
+        await db.collection('post').updateOne({ '_id': ObjectId(postId) }, { $set: { votedUsers: y.votedUsers, votes: y.votes } })
+        res.json(y)
+    } catch (error) {
+        res.status(401).json({ error: error.message });
+    }
+})
+
+
+
 
 export default router;
