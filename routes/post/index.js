@@ -38,11 +38,14 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
     try {
+        const { category } = req.query
         const { uid, mediacount, limit } = req.headers
         let searchParams = {}
         if (uid) searchParams["userID"] = ObjectId(uid)
+        if (category) searchParams["category"] = category
         if (mediacount) searchParams['mediaCount'] = Number(mediacount)
         const db = req.app.locals.db
+        console.log(searchParams)
         const response = await db.collection('post').aggregate([{
             $match: searchParams
         },
@@ -67,14 +70,15 @@ router.get('/', async (req, res) => {
 router.post('/', upload.any('post'), async (req, res) => {
     try {
         let mediaType = req.files.length
-        const { uid, description } = req.body
+        const { uid, description, category } = req.body
         let medias = req.files.map(BASE_ADDER)
         const db = req.app.locals.db
         let votes = {}
+        let votedUsers = {}
         for (let i = 0; i < mediaType; i++) {
             votes[i] = 0
+            votedUsers[i] = []
         }
-        console.log(votes)
         const response = await db.collection('post').insertOne({
             createdAt: Date(),
             updatedAt: Date(),
@@ -82,9 +86,10 @@ router.post('/', upload.any('post'), async (req, res) => {
             mediaCount: mediaType,
             medias: medias,
             userID: ObjectId(uid),
-            votedUsers: [],
+            votedUsers,
             votes,
-            description
+            description,
+            category
         })
         res.json(response)
     } catch (error) {
@@ -115,7 +120,6 @@ router.post('/vote', async (req, res) => {
             // OY ARTIRMA
             y.votes[parseInt(postIndex)] += 1
         } else {
-            console.log("else", fIndex)
             // AYNI YERE MI VERDI
             if (fIndex != parseInt(postIndex)) {
                 // VOTED USER KALDIRMA
