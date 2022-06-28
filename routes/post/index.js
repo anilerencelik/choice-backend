@@ -70,11 +70,12 @@ router.get('/', async (req, res) => {
 router.post('/', upload.any('post'), async (req, res) => {
     try {
         let mediaType = req.files.length
-        const { uid, description, category } = req.body
+        const { uid, description, category, detail0, detail1, detail2, detail3 } = req.body
         let medias = req.files.map(BASE_ADDER)
         const db = req.app.locals.db
         let votes = {}
         let votedUsers = {}
+        let detail = [detail0, detail1, detail2, detail3]
         for (let i = 0; i < mediaType; i++) {
             votes[i] = 0
             votedUsers[i] = []
@@ -89,7 +90,8 @@ router.post('/', upload.any('post'), async (req, res) => {
             votedUsers,
             votes,
             description,
-            category
+            category,
+            detail
         })
         res.json(response)
     } catch (error) {
