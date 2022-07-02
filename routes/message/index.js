@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 })
 
 
-router.post('/send-message', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { uid, message, postID, senderID } = req.body
         const db = req.app.locals.db
