@@ -106,14 +106,4 @@ router.delete('/refresh_token', (req, res) => {
     }
 });
 
-router.get('/selambebek', (req, res) => {
-    try {
-        res.send("aleykümselam")
-    } catch (error) {
-        res.status(401).json({ error: error.message });
-    }
-
-})
-
-
 export default router;
